@@ -144,8 +144,9 @@ if __name__ == '__main__':
 
     background_patient_ids = df.head(background)['patient_id'].to_numpy()
     background_inputs = [os.path.join(data_dir, patient_id) for patient_id in background_patient_ids]
-    background_inputs = torch.stack([torch.from_numpy(prepare_input(input)).float() for input in background_inputs]).to(device)
-    
+    background_inputs = torch.stack([torch.from_numpy(prepare_input(input)).float() for input in background_inputs]).to(
+        device)
+
     e = shap.GradientExplainer(model, background_inputs)
 
     if not os.path.exists(result_path):
@@ -155,14 +156,14 @@ if __name__ == '__main__':
             input = os.path.join(data_dir, patient_id)
             inputs = torch.stack([torch.from_numpy(prepare_input(input)).float()]).to(device)
             y_scores.append(torch.sigmoid(model(inputs)).detach().cpu().numpy())
-            sv = np.array(e.shap_values(inputs)) # (n_classes, n_samples, n_leads, n_points)
+            sv = np.array(e.shap_values(inputs))  # (n_classes, n_samples, n_leads, n_points)
             svs.append(sv)
         svs = np.concatenate(svs, axis=1)
         y_scores = np.concatenate(y_scores, axis=0)
-        np.save(result_path, (svs, y_scores))
+        np.save(result_path, np.array([svs, y_scores], dtype=object))   # update for new version numpy
     svs, y_scores = np.load(result_path, allow_pickle=True)
 
-    # summary_plot(svs, y_scores)
+    summary_plot(svs, y_scores)
     plot_shap2(svs, y_scores)
 
     preds = []
@@ -171,10 +172,11 @@ if __name__ == '__main__':
         ecg_data = prepare_input(os.path.join(data_dir, patient_id))
         label_idx = np.argmax(y_scores[i])
         sv_data = svs[label_idx, i]
-        
+
         sv_data_mean = np.mean(sv_data, axis=1)
-        top_leads = np.where(sv_data_mean > 1e-4)[0] # select top leads
+        top_leads = np.where(sv_data_mean > 1e-4)[0]  # select top leads
         preds.append(classes[label_idx])
         print(patient_id, classes[label_idx], lleads[top_leads])
 
         plot_shap(ecg_data, sv_data, top_leads, patient_id, classes[label_idx])
+
