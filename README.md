@@ -26,6 +26,7 @@ The 12-lead ECG dataset used in this study is the CPSC2018 training dataset whic
 - Shap 1.0.1
 - Tqdm 4.36.1
 - Wfdb 2.2.1
+- lightgbm
 
 ## Run
 
