@@ -155,11 +155,11 @@ if __name__ == '__main__':
             input = os.path.join(data_dir, patient_id)
             inputs = torch.stack([torch.from_numpy(prepare_input(input)).float()]).to(device)
             y_scores.append(torch.sigmoid(model(inputs)).detach().cpu().numpy())
-            sv = np.array(e.shap_values(inputs)) # (n_classes, n_samples, n_leads, n_points)
+            sv = np.array(e.shap_values(inputs))  # (n_classes, n_samples, n_leads, n_points)
             svs.append(sv)
         svs = np.concatenate(svs, axis=1)
         y_scores = np.concatenate(y_scores, axis=0)
-        np.save(result_path, (svs, y_scores))
+        np.save(result_path, np.array([svs, y_scores], dtype=object))   # update for new version numpy
     svs, y_scores = np.load(result_path, allow_pickle=True)
 
     # summary_plot(svs, y_scores)
